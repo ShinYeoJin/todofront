@@ -1,78 +1,194 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { useState, useEffect } from "react";
+import dayjs from "dayjs";
+import Header from "@/components/Layout/Header";
+import WeeklyCalendar from "@/components/Calendar/WeeklyCalendar";
+import TodoForm from "@/components/Todo/TodoForm";
+import TodoList from "@/components/Todo/TodoList";
 
 export default function Home() {
+  const [todos, setTodos] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [filter, setFilter] = useState("all"); // 'all', 'completed', 'active'
+
+  // 초기 로드: LocalStorage에서 불러오기
+  useEffect(() => {
+    const savedTodos = localStorage.getItem("hufflepuff-todos");
+    if (savedTodos) {
+      setTodos(JSON.parse(savedTodos));
+    }
+  }, []);
+
+  // Todos 변경 시 LocalStorage에 저장 (Optimistic UI)
+  useEffect(() => {
+    if (todos.length > 0) {
+      localStorage.setItem("hufflepuff-todos", JSON.stringify(todos));
+    }
+  }, [todos]);
+
+  // Todo 추가
+  const handleAddTodo = (todoData) => {
+    const newTodo = {
+      id: Date.now(),
+      title: todoData.title,
+      date: todoData.date,
+      completed: false,
+      subtasks: [],
+      createdAt: new Date().toISOString(),
+    };
+    setTodos([...todos, newTodo]);
+  };
+
+  // Todo 토글
+  const handleToggleTodo = (id) => {
+    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)));
+  };
+
+  // Todo 삭제
+  const handleDeleteTodo = (id) => {
+    if (confirm("🦡 Are you sure you want to delete this task?")) {
+      setTodos(todos.filter((todo) => todo.id !== id));
+    }
+  };
+
+  // Todo 순서 변경
+  const handleReorderTodos = (newTodos) => {
+    setTodos(newTodos);
+  };
+
+  // Subtask 추가
+  const handleAddSubtask = (todoId, subtaskTitle) => {
+    setTodos(
+      todos.map((todo) => {
+        if (todo.id === todoId) {
+          return {
+            ...todo,
+            subtasks: [
+              ...(todo.subtasks || []),
+              {
+                id: Date.now(),
+                title: subtaskTitle,
+                completed: false,
+              },
+            ],
+          };
+        }
+        return todo;
+      })
+    );
+  };
+
+  // Subtask 토글
+  const handleToggleSubtask = (todoId, subtaskId) => {
+    setTodos(
+      todos.map((todo) => {
+        if (todo.id === todoId) {
+          return {
+            ...todo,
+            subtasks: todo.subtasks.map((subtask) => (subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask)),
+          };
+        }
+        return todo;
+      })
+    );
+  };
+
+  // Subtask 삭제
+  const handleDeleteSubtask = (todoId, subtaskId) => {
+    setTodos(
+      todos.map((todo) => {
+        if (todo.id === todoId) {
+          return {
+            ...todo,
+            subtasks: todo.subtasks.filter((subtask) => subtask.id !== subtaskId),
+          };
+        }
+        return todo;
+      })
+    );
+  };
+
+  // 날짜 선택
+  const handleDateSelect = (date) => {
+    setSelectedDate(selectedDate === date ? null : date);
+  };
+
+  // 필터링된 Todos
+  const getFilteredTodos = () => {
+    let filtered = todos;
+
+    // 날짜 필터
+    if (selectedDate) {
+      filtered = filtered.filter((todo) => dayjs(todo.date).isSame(selectedDate, "day"));
+    }
+
+    // 완료 상태 필터
+    if (filter === "completed") {
+      filtered = filtered.filter((todo) => todo.completed);
+    } else if (filter === "active") {
+      filtered = filtered.filter((todo) => !todo.completed);
+    }
+
+    return filtered;
+  };
+
+  const filteredTodos = getFilteredTodos();
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black`}
-    >
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen p-6">
+      <div className="max-w-5xl mx-auto">
+        <Header />
+
+        <WeeklyCalendar todos={todos} onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+
+        <TodoForm onAddTodo={handleAddTodo} selectedDate={selectedDate} />
+
+        {/* 필터 버튼 */}
+        <div className="hufflepuff-card p-4 mb-6 flex gap-3 justify-center">
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filter === "all" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
+            }`}
+          >
+            All ({todos.length})
+          </button>
+          <button
+            onClick={() => setFilter("active")}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filter === "active" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
+            }`}
+          >
+            Active ({todos.filter((t) => !t.completed).length})
+          </button>
+          <button
+            onClick={() => setFilter("completed")}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filter === "completed" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
+            }`}
+          >
+            Completed ({todos.filter((t) => t.completed).length})
+          </button>
+        </div>
+
+        {selectedDate && (
+          <div className="mb-4 flex items-center justify-between hufflepuff-card p-3">
+            <span className="font-semibold text-hufflepuff-gold dark:text-hufflepuff-yellow">📅 Showing tasks for {dayjs(selectedDate).format("MMMM DD, YYYY")}</span>
+            <button onClick={() => setSelectedDate(null)} className="text-sm text-hufflepuff-gray dark:text-badger-cream hover:text-hufflepuff-black dark:hover:text-hufflepuff-light">
+              Clear filter
+            </button>
+          </div>
+        )}
+
+        <TodoList
+          todos={filteredTodos}
+          onReorder={handleReorderTodos}
+          onToggle={handleToggleTodo}
+          onDelete={handleDeleteTodo}
+          onAddSubtask={handleAddSubtask}
+          onToggleSubtask={handleToggleSubtask}
+          onDeleteSubtask={handleDeleteSubtask}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the index.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs/pages/getting-started?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

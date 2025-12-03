@@ -1,26 +1,52 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Comic+Neue:wght@300;400;700&display=swap");
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-hufflepuff-light dark:bg-badger-brown transition-colors duration-300;
+    @apply text-hufflepuff-black dark:text-hufflepuff-light;
+    font-family: "Comic Neue", cursive;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .hufflepuff-card {
+    @apply bg-white dark:bg-hufflepuff-gray;
+    @apply border-2 border-hufflepuff-gold dark:border-hufflepuff-yellow;
+    @apply rounded-lg shadow-lg;
+    @apply transition-all duration-300;
+  }
+
+  .hufflepuff-btn {
+    @apply px-4 py-2 rounded-md font-semibold;
+    @apply bg-hufflepuff-gold hover:bg-hufflepuff-yellow;
+    @apply dark:bg-hufflepuff-yellow dark:hover:bg-hufflepuff-gold;
+    @apply text-hufflepuff-black transition-colors duration-200;
+  }
+
+  .badger-badge {
+    @apply inline-flex items-center justify-center;
+    @apply w-8 h-8 rounded-full;
+    @apply bg-hufflepuff-yellow dark:bg-hufflepuff-gold;
+    @apply text-hufflepuff-black font-bold text-sm;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-badger-cream dark:bg-hufflepuff-gray;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-hufflepuff-gold dark:bg-hufflepuff-yellow rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-hufflepuff-yellow dark:bg-hufflepuff-gold;
 }
