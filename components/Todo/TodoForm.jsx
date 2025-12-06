@@ -5,14 +5,15 @@ import axios, { extractData } from "../../utils/api";
 
 export default function TodoForm({ onAddTodo, selectedDate }) {
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState(selectedDate || dayjs().format("YYYY-MM-DD"));
+  const [date, setDate] = useState("");
 
-  // 상위에서 날짜를 선택/변경했을 때 입력 필드도 함께 따라가도록 동기화
+  // 클라이언트 마운트 후 오늘 날짜 설정 (SSR hydration 불일치 방지)
   useEffect(() => {
-    if (!selectedDate) return;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDate(selectedDate);
+    if (selectedDate) {
+      setDate(selectedDate);
+    } else {
+      setDate(dayjs().format("YYYY-MM-DD"));
+    }
   }, [selectedDate]);
 
   const handleSubmit = async (e) => {
