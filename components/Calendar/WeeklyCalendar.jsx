@@ -6,6 +6,25 @@ import CalendarDay from "./CalendarDay";
 
 dayjs.extend(isoWeek);
 
+// 한국 공휴일 목록 (2025-2026년)
+const KOREAN_HOLIDAYS = [
+  // 2025년
+  "2025-01-01", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01",
+  "2025-05-05", "2025-05-06", "2025-06-06", "2025-08-15", "2025-10-03",
+  "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09",
+  "2025-12-25",
+  // 2026년
+  "2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-03-01",
+  "2026-03-02", "2026-05-05", "2026-05-24", "2026-06-06", "2026-08-15",
+  "2026-08-17", "2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03",
+  "2026-10-09", "2026-12-25",
+];
+
+const isHoliday = (date) => {
+  const dateStr = dayjs(date).format("YYYY-MM-DD");
+  return KOREAN_HOLIDAYS.includes(dateStr);
+};
+
 export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
   // 클라이언트 사이드에서만 현재 날짜 계산 (SSR hydration 불일치 방지)
   const [currentWeek, setCurrentWeek] = useState(null);
@@ -165,6 +184,7 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
               const dayOfWeek = day.day();
               const isSunday = dayOfWeek === 0;
               const isSaturday = dayOfWeek === 6;
+              const isHolidayDate = isHoliday(day);
 
               return (
                 <button
@@ -184,7 +204,7 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
                   <span className={`text-sm font-bold ${
                     isSelected 
                       ? "text-hufflepuff-black" 
-                      : isSunday 
+                      : (isSunday || isHolidayDate)
                         ? "text-red-500 dark:text-red-400" 
                         : isSaturday 
                           ? "text-blue-500 dark:text-blue-400" 
