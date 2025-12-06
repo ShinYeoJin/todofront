@@ -6,23 +6,53 @@ import CalendarDay from "./CalendarDay";
 
 dayjs.extend(isoWeek);
 
-// 한국 공휴일 목록 (2025-2026년)
-const KOREAN_HOLIDAYS = [
+// 한국 공휴일 목록 (2025-2026년) - 이름 포함
+const KOREAN_HOLIDAYS = {
   // 2025년
-  "2025-01-01", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01",
-  "2025-05-05", "2025-05-06", "2025-06-06", "2025-08-15", "2025-10-03",
-  "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09",
-  "2025-12-25",
+  "2025-01-01": "신정",
+  "2025-01-28": "설날",
+  "2025-01-29": "설날",
+  "2025-01-30": "설날",
+  "2025-03-01": "삼일절",
+  "2025-05-05": "어린이날",
+  "2025-05-06": "부처님오신날",
+  "2025-06-06": "현충일",
+  "2025-08-15": "광복절",
+  "2025-10-03": "개천절",
+  "2025-10-05": "추석",
+  "2025-10-06": "추석",
+  "2025-10-07": "추석",
+  "2025-10-08": "대체공휴일",
+  "2025-10-09": "한글날",
+  "2025-12-25": "크리스마스",
   // 2026년
-  "2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-03-01",
-  "2026-03-02", "2026-05-05", "2026-05-24", "2026-06-06", "2026-08-15",
-  "2026-08-17", "2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03",
-  "2026-10-09", "2026-12-25",
-];
+  "2026-01-01": "신정",
+  "2026-02-16": "설날",
+  "2026-02-17": "설날",
+  "2026-02-18": "설날",
+  "2026-03-01": "삼일절",
+  "2026-03-02": "대체공휴일",
+  "2026-05-05": "어린이날",
+  "2026-05-24": "부처님오신날",
+  "2026-06-06": "현충일",
+  "2026-08-15": "광복절",
+  "2026-08-17": "대체공휴일",
+  "2026-09-24": "추석",
+  "2026-09-25": "추석",
+  "2026-09-26": "추석",
+  "2026-10-03": "개천절",
+  "2026-10-09": "한글날",
+  "2026-12-25": "크리스마스",
+};
 
 const isHoliday = (date) => {
   const dateStr = dayjs(date).format("YYYY-MM-DD");
-  return KOREAN_HOLIDAYS.includes(dateStr);
+  return dateStr in KOREAN_HOLIDAYS;
+};
+
+const getHolidayName = (date) => {
+  const dateStr = dayjs(date).format("YYYY-MM-DD");
+  return KOREAN_HOLIDAYS[dateStr] || null;
 };
 
 export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
@@ -185,13 +215,14 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
               const isSunday = dayOfWeek === 0;
               const isSaturday = dayOfWeek === 6;
               const isHolidayDate = isHoliday(day);
+              const holidayName = getHolidayName(day);
 
               return (
                 <button
                   key={day.format("YYYY-MM-DD")}
                   onClick={() => onDateSelect(day.format("YYYY-MM-DD"))}
                   className={`
-                    relative p-2 rounded-lg text-center transition-all min-h-[50px]
+                    relative p-1 rounded-lg text-center transition-all min-h-[60px] flex flex-col items-center justify-start
                     ${isSelected 
                       ? "bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black scale-105" 
                       : isCurrentMonth 
@@ -212,8 +243,13 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
                   }`}>
                     {day.format("D")}
                   </span>
+                  {holidayName && (
+                    <span className={`text-[9px] leading-tight ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
+                      {holidayName}
+                    </span>
+                  )}
                   {todoCount > 0 && (
-                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black rounded-full w-5 h-5 flex items-center justify-center">
+                    <span className="absolute bottom-0.5 right-0.5 text-[10px] bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black rounded-full w-4 h-4 flex items-center justify-center">
                       {todoCount}
                     </span>
                   )}
