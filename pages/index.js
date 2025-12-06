@@ -1,389 +1,135 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+/**
+ * 메인 페이지 컴포넌트
+ * 
+ * Todo List 앱의 메인 페이지입니다.
+ * 캘린더, 진행률, 필터, 할 일 목록을 표시합니다.
+ */
+
 import dayjs from "dayjs";
+
+// 컴포넌트
 import Header from "@/components/Layout/Header";
 import WeeklyCalendar from "@/components/Calendar/WeeklyCalendar";
 import TodoList from "@/components/Todo/TodoList";
-import axios, { extractData } from "@/utils/api";
+import ProgressBar from "@/components/Progress/ProgressBar";
+import FilterButtons from "@/components/Filter/FilterButtons";
+
+// 커스텀 훅
+import useTodos from "@/hooks/useTodos";
+import useFilter from "@/hooks/useFilter";
+import useProgress from "@/hooks/useProgress";
 
 export default function Home() {
-  const [todos, setTodos] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [filter, setFilter] = useState("all"); // 'all', 'completed', 'active'
+  // ============================================
+  // 커스텀 훅 사용
+  // ============================================
+  
+  // Todo & Subtask 상태 관리
+  const {
+    todos,
+    addTodo,
+    toggleTodo,
+    deleteTodo,
+    reorderTodos,
+    addSubtask,
+    toggleSubtask,
+    deleteSubtask,
+  } = useTodos();
 
-  // 초기 로드: 서버에서 Todo 불러오기
-  useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        const response = await axios.get("/todos");
-        const data = extractData(response);
-        if (Array.isArray(data)) {
-          setTodos(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch todos:", error);
-      }
-    };
+  // 필터링 로직
+  const {
+    selectedDate,
+    filter,
+    filteredTodos,
+    setFilter,
+    handleDateSelect,
+    clearDateFilter,
+  } = useFilter(todos);
 
-    fetchTodos();
-  }, []);
+  // 진행률 계산
+  const {
+    allCount,
+    activeCount,
+    completedCount,
+    totalProgress,
+    selectedDateProgress,
+  } = useProgress(todos, selectedDate);
 
-  // Todo 추가 (서버에서 생성된 todo 객체를 그대로 사용)
-  const handleAddTodo = useCallback((newTodo) => {
-    setTodos((prev) => [...prev, newTodo]);
-  }, []);
-
-  // Todo 토글 (백엔드와 동기화)
-  const handleToggleTodo = useCallback(
-    async (id) => {
-      // 낙관적 업데이트: 먼저 UI를 토글해 주고, 실패 시 롤백
-      const prevTodos = todos;
-      setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)));
-
-      try {
-        const response = await axios.patch(`/todos/${id}/toggle`);
-        const updated = extractData(response);
-
-        if (updated) {
-          setTodos((prev) => prev.map((todo) => (todo.id === id ? updated : todo)));
-        }
-      } catch (error) {
-        console.error("Failed to toggle todo:", error);
-        // 실패 시 이전 상태로 복구
-        setTodos(prevTodos);
-      }
-    },
-    [todos]
-  );
-
-  // Todo 삭제 (백엔드와 동기화)
-  const handleDeleteTodo = useCallback(
-    async (id) => {
-      if (!confirm("🦡 Are you sure you want to delete this task?")) return;
-
-      const prevTodos = todos;
-      // 낙관적 삭제
-      setTodos((prev) => prev.filter((todo) => todo.id !== id));
-
-      try {
-        await axios.delete(`/todos/${id}`);
-      } catch (error) {
-        console.error("Failed to delete todo:", error);
-        // 실패 시 복구
-        setTodos(prevTodos);
-      }
-    },
-    [todos]
-  );
-
-  // Todo 순서 변경
-  const handleReorderTodos = useCallback((newTodos) => {
-    setTodos(newTodos);
-  }, []);
-
-  // Subtask 추가 (백엔드와 동기화)
-  const handleAddSubtask = useCallback(
-    async (todoId, subtaskTitle) => {
-      const prevTodos = todos;
-
-      // 낙관적 추가: 임시 ID를 사용
-      const tempId = Date.now();
-      const optimisticSubtask = { id: tempId, title: subtaskTitle, completed: false };
-
-      setTodos((prev) =>
-        prev.map((todo) => {
-          if (todo.id === todoId) {
-            return {
-              ...todo,
-              subtasks: [...(todo.subtasks || []), optimisticSubtask],
-            };
-          }
-          return todo;
-        })
-      );
-
-      try {
-        const response = await axios.post("/subtasks", { todoId, title: subtaskTitle });
-        const newSubtask = extractData(response);
-
-        if (!newSubtask) return;
-
-        // 서버에서 온 실제 subtask로 교체
-        setTodos((prev) =>
-          prev.map((todo) => {
-            if (todo.id === todoId) {
-              return {
-                ...todo,
-                subtasks: todo.subtasks.map((subtask) => (subtask.id === tempId ? newSubtask : subtask)),
-              };
-            }
-            return todo;
-          })
-        );
-      } catch (error) {
-        console.error("Failed to add subtask:", error);
-        // 실패 시 복구
-        setTodos(prevTodos);
-      }
-    },
-    [todos]
-  );
-
-  // Subtask 토글 (백엔드와 동기화)
-  const handleToggleSubtask = useCallback(
-    async (todoId, subtaskId) => {
-      const prevTodos = todos;
-
-      // 낙관적 토글
-      setTodos((prev) =>
-        prev.map((todo) => {
-          if (todo.id === todoId) {
-            return {
-              ...todo,
-              subtasks: todo.subtasks.map((subtask) =>
-                subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
-              ),
-            };
-          }
-          return todo;
-        })
-      );
-
-      try {
-        const response = await axios.patch(`/subtasks/${subtaskId}/toggle`);
-        const updatedSubtask = extractData(response);
-
-        if (!updatedSubtask) return;
-
-        setTodos((prev) =>
-          prev.map((todo) => {
-            if (todo.id === todoId) {
-              return {
-                ...todo,
-                subtasks: todo.subtasks.map((subtask) => (subtask.id === subtaskId ? updatedSubtask : subtask)),
-              };
-            }
-            return todo;
-          })
-        );
-      } catch (error) {
-        console.error("Failed to toggle subtask:", error);
-        // 실패 시 복구
-        setTodos(prevTodos);
-      }
-    },
-    [todos]
-  );
-
-  // Subtask 삭제 (백엔드와 동기화)
-  const handleDeleteSubtask = useCallback(
-    async (todoId, subtaskId) => {
-      const prevTodos = todos;
-
-      // 낙관적 삭제
-      setTodos((prev) =>
-        prev.map((todo) => {
-          if (todo.id === todoId) {
-            return {
-              ...todo,
-              subtasks: todo.subtasks.filter((subtask) => subtask.id !== subtaskId),
-            };
-          }
-          return todo;
-        })
-      );
-
-      try {
-        await axios.delete(`/subtasks/${subtaskId}`);
-      } catch (error) {
-        console.error("Failed to delete subtask:", error);
-        // 실패 시 복구
-        setTodos(prevTodos);
-      }
-    },
-    [todos]
-  );
-
-  // 날짜 선택
-  const handleDateSelect = useCallback(
-    (date) => {
-      setSelectedDate((prev) => (prev === date ? null : date));
-    },
-    []
-  );
-
-  // 필터링된 Todos
-  const filteredTodos = useMemo(() => {
-    let filtered = todos;
-
-    // 날짜 필터: 날짜가 선택되어 있다면 항상 해당 날짜의 할 일만 보기
-    if (selectedDate) {
-      filtered = filtered.filter((todo) => dayjs(todo.date).isSame(selectedDate, "day"));
-    }
-
-    // 완료 상태 필터
-    if (filter === "completed") {
-      filtered = filtered.filter((todo) => todo.completed);
-    } else if (filter === "active") {
-      filtered = filtered.filter((todo) => !todo.completed);
-    }
-
-    return filtered;
-  }, [todos, selectedDate, filter]);
-
-  // 필터 버튼에 표시할 카운트 (todo + subtask 모두 포함)
-  const { allCount, activeCount, completedCount } = useMemo(() => {
-    const todosForCount = selectedDate ? todos.filter((todo) => dayjs(todo.date).isSame(selectedDate, "day")) : todos;
-    
-    // Todo 카운트
-    let all = todosForCount.length;
-    let active = todosForCount.filter((t) => !t.completed).length;
-    let completed = todosForCount.filter((t) => t.completed).length;
-    
-    // Subtask 카운트 추가
-    todosForCount.forEach((todo) => {
-      if (todo.subtasks && todo.subtasks.length > 0) {
-        all += todo.subtasks.length;
-        active += todo.subtasks.filter((s) => !s.completed).length;
-        completed += todo.subtasks.filter((s) => s.completed).length;
-      }
-    });
-
-    return { allCount: all, activeCount: active, completedCount: completed };
-  }, [todos, selectedDate]);
-
-  // 전체 진행률 계산 (캘린더 하단에 표시)
-  const totalProgress = useMemo(() => {
-    let total = todos.length;
-    let completed = todos.filter((t) => t.completed).length;
-    
-    todos.forEach((todo) => {
-      if (todo.subtasks && todo.subtasks.length > 0) {
-        total += todo.subtasks.length;
-        completed += todo.subtasks.filter((s) => s.completed).length;
-      }
-    });
-
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
-  }, [todos]);
-
-  // 선택된 날짜의 진행률 계산
-  const selectedDateProgress = useMemo(() => {
-    if (!selectedDate) return 0;
-    
-    const dateTodos = todos.filter((todo) => dayjs(todo.date).isSame(selectedDate, "day"));
-    let total = dateTodos.length;
-    let completed = dateTodos.filter((t) => t.completed).length;
-    
-    dateTodos.forEach((todo) => {
-      if (todo.subtasks && todo.subtasks.length > 0) {
-        total += todo.subtasks.length;
-        completed += todo.subtasks.filter((s) => s.completed).length;
-      }
-    });
-
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
-  }, [todos, selectedDate]);
-
+  // ============================================
+  // 렌더링
+  // ============================================
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
+        
+        {/* 헤더 */}
         <Header />
 
-        <WeeklyCalendar todos={todos} onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+        {/* 캘린더 */}
+        <WeeklyCalendar 
+          todos={todos} 
+          onDateSelect={handleDateSelect} 
+          selectedDate={selectedDate} 
+        />
 
-        {/* 전체 진행률 */}
+        {/* 전체 진행률 (날짜 미선택 시) */}
         {!selectedDate && todos.length > 0 && (
           <div className="hufflepuff-card p-4 mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-hufflepuff-black dark:text-hufflepuff-light">📊 Overall Progress</span>
-              <span className="text-lg font-bold text-hufflepuff-gold dark:text-hufflepuff-yellow">{totalProgress}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-hufflepuff-gray rounded-full h-4 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-hufflepuff-gold to-hufflepuff-yellow transition-all duration-500 ease-out"
-                style={{ width: `${totalProgress}%` }}
-              />
-            </div>
-            {totalProgress === 100 && (
-              <div className="mt-3 p-3 bg-gradient-to-r from-hufflepuff-gold/20 to-hufflepuff-yellow/20 rounded-lg border-2 border-hufflepuff-gold dark:border-hufflepuff-yellow">
-                <p className="text-center font-bold text-hufflepuff-black dark:text-hufflepuff-yellow">
-                  🎉 축하합니다! 모든 할 일을 완료했어요! 🎉
-                </p>
-                <p className="text-center text-sm text-hufflepuff-gray dark:text-badger-cream mt-1">
-                  정말 고생 많았어요! 오늘도 최선을 다한 당신이 자랑스럽습니다! ⭐
-                </p>
-              </div>
-            )}
+            <ProgressBar
+              title="📊 Overall Progress"
+              progress={totalProgress}
+              showCongrats={true}
+              congratsMessage="🎉 축하합니다! 모든 할 일을 완료했어요! 🎉"
+              congratsSubMessage="정말 고생 많았어요! 오늘도 최선을 다한 당신이 자랑스럽습니다! ⭐"
+            />
           </div>
         )}
 
         {/* 필터 버튼 */}
-        <div className="hufflepuff-card p-3 sm:p-4 mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-3 justify-center">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors ${
-              filter === "all" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
-            }`}
-          >
-            All ({allCount})
-          </button>
-          <button
-            onClick={() => setFilter("active")}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors ${
-              filter === "active" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
-            }`}
-          >
-            Active ({activeCount})
-          </button>
-          <button
-            onClick={() => setFilter("completed")}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors ${
-              filter === "completed" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
-            }`}
-          >
-            Completed ({completedCount})
-          </button>
-        </div>
+        <FilterButtons
+          filter={filter}
+          onFilterChange={setFilter}
+          allCount={allCount}
+          activeCount={activeCount}
+          completedCount={completedCount}
+        />
 
+        {/* 선택된 날짜 정보 & 진행률 */}
         {selectedDate && (
           <div className="mb-4 hufflepuff-card p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="font-semibold text-hufflepuff-gold dark:text-hufflepuff-yellow">📅 Showing tasks for {dayjs(selectedDate).format("MMMM DD, YYYY")}</span>
-              <button onClick={() => setSelectedDate(null)} className="text-sm text-hufflepuff-gray dark:text-badger-cream hover:text-hufflepuff-black dark:hover:text-hufflepuff-light">
+              <span className="font-semibold text-hufflepuff-gold dark:text-hufflepuff-yellow">
+                📅 Showing tasks for {dayjs(selectedDate).format("MMMM DD, YYYY")}
+              </span>
+              <button 
+                onClick={clearDateFilter} 
+                className="text-sm text-hufflepuff-gray dark:text-badger-cream hover:text-hufflepuff-black dark:hover:text-hufflepuff-light"
+              >
                 Clear filter
               </button>
             </div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-hufflepuff-black dark:text-hufflepuff-light">📊 Daily Progress</span>
-              <span className="text-lg font-bold text-hufflepuff-gold dark:text-hufflepuff-yellow">{selectedDateProgress}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-hufflepuff-gray rounded-full h-3 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-hufflepuff-gold to-hufflepuff-yellow transition-all duration-500 ease-out"
-                style={{ width: `${selectedDateProgress}%` }}
-              />
-            </div>
-            {selectedDateProgress === 100 && (
-              <div className="mt-3 p-2 bg-gradient-to-r from-hufflepuff-gold/20 to-hufflepuff-yellow/20 rounded-lg border border-hufflepuff-gold dark:border-hufflepuff-yellow">
-                <p className="text-center font-semibold text-hufflepuff-black dark:text-hufflepuff-yellow text-sm">
-                  🎉 오늘 할 일을 모두 완료했어요! 고생 많았어요! 🎉
-                </p>
-              </div>
-            )}
+            <ProgressBar
+              title="📊 Daily Progress"
+              progress={selectedDateProgress}
+              size="sm"
+              showCongrats={true}
+              congratsMessage="🎉 오늘 할 일을 모두 완료했어요! 고생 많았어요! 🎉"
+            />
           </div>
         )}
 
+        {/* 할 일 목록 */}
         <TodoList
           todos={filteredTodos}
           selectedDate={selectedDate}
           filter={filter}
-          onReorder={handleReorderTodos}
-          onToggle={handleToggleTodo}
-          onDelete={handleDeleteTodo}
-          onAddTodo={handleAddTodo}
-          onAddSubtask={handleAddSubtask}
-          onToggleSubtask={handleToggleSubtask}
-          onDeleteSubtask={handleDeleteSubtask}
+          onReorder={reorderTodos}
+          onToggle={toggleTodo}
+          onDelete={deleteTodo}
+          onAddTodo={addTodo}
+          onAddSubtask={addSubtask}
+          onToggleSubtask={toggleSubtask}
+          onDeleteSubtask={deleteSubtask}
         />
       </div>
     </div>

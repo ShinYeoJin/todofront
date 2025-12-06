@@ -15,9 +15,11 @@
  */
 
 import { useState } from "react";
-import { Check, Trash2, ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { Check, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
+import SubtaskList from "./SubtaskList";
 
 export default function TodoItem({ 
   todo, 
@@ -31,9 +33,7 @@ export default function TodoItem({
   // ============================================
   // State 관리
   // ============================================
-  const [isExpanded, setIsExpanded] = useState(false);       // 서브태스크 펼침 여부
-  const [subtaskTitle, setSubtaskTitle] = useState("");      // 새 서브태스크 제목
-  const [showSubtaskInput, setShowSubtaskInput] = useState(false);  // 입력창 표시 여부
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // ============================================
   // 드래그 앤 드롭 설정 (dnd-kit)
@@ -59,26 +59,6 @@ export default function TodoItem({
   const hasSubtasks = todo.subtasks && todo.subtasks.length > 0;
   const subtaskCount = todo.subtasks?.length || 0;
   const completedSubtaskCount = todo.subtasks?.filter((s) => s.completed).length || 0;
-
-  // 필터에 따라 서브태스크 필터링
-  const filteredSubtasks = (todo.subtasks || []).filter((subtask) => {
-    if (filter === "active") return !subtask.completed;
-    if (filter === "completed") return subtask.completed;
-    return true; // 'all'
-  });
-
-  // ============================================
-  // 이벤트 핸들러
-  // ============================================
-  
-  /** 서브태스크 추가 */
-  const handleAddSubtask = () => {
-    if (!subtaskTitle.trim()) return;
-    
-    onAddSubtask(todo.id, subtaskTitle.trim());
-    setSubtaskTitle("");
-    setShowSubtaskInput(false);
-  };
 
   // ============================================
   // 렌더링
@@ -170,104 +150,16 @@ export default function TodoItem({
             </div>
           </div>
 
-          {/* ============================================
-              서브태스크 섹션 (펼쳐진 경우에만 표시)
-              ============================================ */}
+          {/* 서브태스크 섹션 */}
           {isExpanded && (
-            <div className="mt-3 ml-4 space-y-2 border-l-2 border-hufflepuff-gold dark:border-hufflepuff-yellow pl-3">
-              
-              {/* 서브태스크 목록 */}
-              {filteredSubtasks.length > 0 ? (
-                filteredSubtasks.map((subtask) => (
-                  <div key={subtask.id} className="flex items-center gap-2">
-                    {/* 서브태스크 체크박스 */}
-                    <button
-                      onClick={() => onToggleSubtask(todo.id, subtask.id)}
-                      className={`
-                        flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center
-                        ${subtask.completed 
-                          ? "bg-hufflepuff-yellow border-hufflepuff-yellow" 
-                          : "border-hufflepuff-gray hover:border-hufflepuff-gold"
-                        }
-                      `}
-                    >
-                      {subtask.completed && <Check size={12} />}
-                    </button>
-
-                    {/* 서브태스크 제목 */}
-                    <span className={`
-                      flex-1 text-sm
-                      ${subtask.completed 
-                        ? "line-through text-hufflepuff-gray" 
-                        : "text-hufflepuff-black dark:text-badger-cream"
-                      }
-                    `}>
-                      {subtask.title}
-                    </span>
-
-                    {/* 서브태스크 삭제 버튼 */}
-                    <button 
-                      onClick={() => onDeleteSubtask(todo.id, subtask.id)} 
-                      className="text-red-400 hover:text-red-600"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))
-              ) : (
-                // 필터링 결과가 없는 경우
-                filter !== "all" && hasSubtasks && (
-                  <p className="text-sm text-hufflepuff-gray dark:text-badger-cream italic">
-                    No {filter} subtasks
-                  </p>
-                )
-              )}
-
-              {/* 서브태스크 추가 입력창 */}
-              {showSubtaskInput ? (
-                <div className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={subtaskTitle}
-                    onChange={(e) => setSubtaskTitle(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleAddSubtask()}
-                    placeholder="Enter subtask..."
-                    className="
-                      flex-1 px-2 py-1 text-sm rounded border 
-                      border-hufflepuff-gold dark:border-hufflepuff-yellow 
-                      bg-white dark:bg-hufflepuff-gray 
-                      text-hufflepuff-black dark:text-hufflepuff-light 
-                      focus:outline-none focus:ring-1 focus:ring-hufflepuff-yellow
-                    "
-                    autoFocus
-                  />
-                  <button 
-                    onClick={handleAddSubtask} 
-                    className="px-2 py-1 text-sm bg-hufflepuff-gold hover:bg-hufflepuff-yellow text-hufflepuff-black rounded font-semibold"
-                  >
-                    Add
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setShowSubtaskInput(false);
-                      setSubtaskTitle("");
-                    }} 
-                    className="px-2 py-1 text-sm text-hufflepuff-gray hover:text-hufflepuff-black dark:text-badger-cream dark:hover:text-hufflepuff-light"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                // 서브태스크 추가 버튼
-                <button 
-                  onClick={() => setShowSubtaskInput(true)} 
-                  className="flex items-center gap-1 text-sm text-hufflepuff-gold dark:text-hufflepuff-yellow hover:opacity-70 mt-2"
-                >
-                  <Plus size={14} />
-                  Add Subtask
-                </button>
-              )}
-            </div>
+            <SubtaskList
+              todoId={todo.id}
+              subtasks={todo.subtasks || []}
+              filter={filter}
+              onAddSubtask={onAddSubtask}
+              onToggleSubtask={onToggleSubtask}
+              onDeleteSubtask={onDeleteSubtask}
+            />
           )}
         </div>
       </div>

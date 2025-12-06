@@ -13,95 +13,15 @@
  */
 
 import dayjs from "dayjs";
-
-// ============================================
-// 한국 공휴일 데이터 (2025-2026년)
-// - 키: 날짜 (YYYY-MM-DD 형식)
-// - 값: 공휴일 이름
-// ============================================
-const KOREAN_HOLIDAYS = {
-  // 2025년
-  "2025-01-01": "신정",
-  "2025-01-28": "설날",
-  "2025-01-29": "설날",
-  "2025-01-30": "설날",
-  "2025-03-01": "삼일절",
-  "2025-05-05": "어린이날",
-  "2025-05-06": "부처님오신날",
-  "2025-06-06": "현충일",
-  "2025-08-15": "광복절",
-  "2025-10-03": "개천절",
-  "2025-10-05": "추석",
-  "2025-10-06": "추석",
-  "2025-10-07": "추석",
-  "2025-10-08": "대체공휴일",
-  "2025-10-09": "한글날",
-  "2025-12-25": "크리스마스",
-  
-  // 2026년
-  "2026-01-01": "신정",
-  "2026-02-16": "설날",
-  "2026-02-17": "설날",
-  "2026-02-18": "설날",
-  "2026-03-01": "삼일절",
-  "2026-03-02": "대체공휴일",
-  "2026-05-05": "어린이날",
-  "2026-05-24": "부처님오신날",
-  "2026-06-06": "현충일",
-  "2026-08-15": "광복절",
-  "2026-08-17": "대체공휴일",
-  "2026-09-24": "추석",
-  "2026-09-25": "추석",
-  "2026-09-26": "추석",
-  "2026-10-03": "개천절",
-  "2026-10-09": "한글날",
-  "2026-12-25": "크리스마스",
-};
-
-/**
- * 주어진 날짜가 공휴일인지 확인
- * @param {dayjs.Dayjs} date - 확인할 날짜
- * @returns {boolean} - 공휴일 여부
- */
-const isHoliday = (date) => {
-  const dateStr = dayjs(date).format("YYYY-MM-DD");
-  return dateStr in KOREAN_HOLIDAYS;
-};
-
-/**
- * 주어진 날짜의 공휴일 이름 반환
- * @param {dayjs.Dayjs} date - 확인할 날짜
- * @returns {string|null} - 공휴일 이름 또는 null
- */
-const getHolidayName = (date) => {
-  const dateStr = dayjs(date).format("YYYY-MM-DD");
-  return KOREAN_HOLIDAYS[dateStr] || null;
-};
+import { isHoliday, getHolidayName, getDateColorClass } from "../../utils/holidays";
 
 export default function CalendarDay({ date, today, todoCount, isSelected, onClick }) {
   // ============================================
   // 날짜 속성 계산
   // ============================================
   const isToday = today ? today.isSame(date, "day") : false;
-  const dayOfWeek = dayjs(date).day(); // 0: 일요일, 6: 토요일
-  const isSunday = dayOfWeek === 0;
-  const isSaturday = dayOfWeek === 6;
-  const isHolidayDate = isHoliday(date);
   const holidayName = getHolidayName(date);
-
-  /**
-   * 날짜 숫자 색상 결정
-   * - 선택됨: 검정색
-   * - 일요일/공휴일: 빨간색
-   * - 토요일: 파란색
-   * - 평일: 기본 색상
-   */
-  const getDateColor = () => {
-    if (isSelected) return "text-hufflepuff-black";
-    if (isSunday || isHolidayDate) return "text-red-500 dark:text-red-400";
-    if (isSaturday) return "text-blue-500 dark:text-blue-400";
-    return "text-hufflepuff-black dark:text-hufflepuff-yellow";
-  };
+  const dateColorClass = getDateColorClass(date, isSelected);
 
   // ============================================
   // 렌더링
@@ -128,7 +48,7 @@ export default function CalendarDay({ date, today, todoCount, isSelected, onClic
       </span>
       
       {/* 날짜 숫자 */}
-      <span className={`text-sm sm:text-lg font-bold ${getDateColor()}`}>
+      <span className={`text-sm sm:text-lg font-bold ${dateColorClass}`}>
         {dayjs(date).format("DD")}
       </span>
       

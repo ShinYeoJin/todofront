@@ -1,77 +1,51 @@
+/**
+ * WeeklyCalendar 컴포넌트
+ * 
+ * 주간/월간 캘린더 뷰를 제공합니다.
+ * 타이틀 클릭으로 주간/월간 뷰 전환이 가능합니다.
+ * 
+ * @param {Object} props
+ * @param {Array} props.todos - 할 일 목록 (날짜별 카운트 계산용)
+ * @param {Function} props.onDateSelect - 날짜 선택 핸들러
+ * @param {string} props.selectedDate - 현재 선택된 날짜
+ */
+
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+
 import CalendarDay from "./CalendarDay";
+import MonthlyCalendar from "./MonthlyCalendar";
 
 dayjs.extend(isoWeek);
 
-// 한국 공휴일 목록 (2025-2026년) - 이름 포함
-const KOREAN_HOLIDAYS = {
-  // 2025년
-  "2025-01-01": "신정",
-  "2025-01-28": "설날",
-  "2025-01-29": "설날",
-  "2025-01-30": "설날",
-  "2025-03-01": "삼일절",
-  "2025-05-05": "어린이날",
-  "2025-05-06": "부처님오신날",
-  "2025-06-06": "현충일",
-  "2025-08-15": "광복절",
-  "2025-10-03": "개천절",
-  "2025-10-05": "추석",
-  "2025-10-06": "추석",
-  "2025-10-07": "추석",
-  "2025-10-08": "대체공휴일",
-  "2025-10-09": "한글날",
-  "2025-12-25": "크리스마스",
-  // 2026년
-  "2026-01-01": "신정",
-  "2026-02-16": "설날",
-  "2026-02-17": "설날",
-  "2026-02-18": "설날",
-  "2026-03-01": "삼일절",
-  "2026-03-02": "대체공휴일",
-  "2026-05-05": "어린이날",
-  "2026-05-24": "부처님오신날",
-  "2026-06-06": "현충일",
-  "2026-08-15": "광복절",
-  "2026-08-17": "대체공휴일",
-  "2026-09-24": "추석",
-  "2026-09-25": "추석",
-  "2026-09-26": "추석",
-  "2026-10-03": "개천절",
-  "2026-10-09": "한글날",
-  "2026-12-25": "크리스마스",
-};
-
-const isHoliday = (date) => {
-  const dateStr = dayjs(date).format("YYYY-MM-DD");
-  return dateStr in KOREAN_HOLIDAYS;
-};
-
-const getHolidayName = (date) => {
-  const dateStr = dayjs(date).format("YYYY-MM-DD");
-  return KOREAN_HOLIDAYS[dateStr] || null;
-};
-
 export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
-  // 클라이언트 사이드에서만 현재 날짜 계산 (SSR hydration 불일치 방지)
-  const [currentWeek, setCurrentWeek] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(null);
-  const [today, setToday] = useState(null);
-  const [viewMode, setViewMode] = useState("week"); // "week" or "month"
+  // ============================================
+  // State 관리
+  // ============================================
+  const [currentWeek, setCurrentWeek] = useState(null);    // 현재 주
+  const [currentMonth, setCurrentMonth] = useState(null);  // 현재 월
+  const [today, setToday] = useState(null);                // 오늘 날짜
+  const [viewMode, setViewMode] = useState("week");        // 뷰 모드 ("week" | "month")
 
+  // ============================================
+  // 초기화 (클라이언트 사이드)
+  // SSR hydration 불일치 방지를 위해 useEffect에서 초기화
+  // ============================================
   useEffect(() => {
-    // 클라이언트 마운트 후 현재 날짜 설정
     const now = dayjs();
     setCurrentWeek(now.startOf("isoWeek"));
     setCurrentMonth(now.startOf("month"));
     setToday(now);
   }, []);
 
+  // ============================================
+  // 주간 날짜 배열 생성
+  // ============================================
   const getWeekDays = () => {
     if (!currentWeek) return [];
+    
     const days = [];
     for (let i = 0; i < 7; i++) {
       days.push(currentWeek.add(i, "day"));
@@ -79,27 +53,16 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
     return days;
   };
 
-  const getMonthDays = () => {
-    if (!currentMonth) return [];
-    const days = [];
-    const startOfMonth = currentMonth.startOf("month");
-    const endOfMonth = currentMonth.endOf("month");
-    
-    // 월의 첫 주 시작일 (일요일 기준)
-    const startDay = startOfMonth.day(); // 0 = 일요일
-    const firstDayToShow = startOfMonth.subtract(startDay, "day");
-    
-    // 6주 * 7일 = 42일 표시
-    for (let i = 0; i < 42; i++) {
-      days.push(firstDayToShow.add(i, "day"));
-    }
-    return days;
-  };
-
+  // ============================================
+  // 날짜별 할 일 개수 조회
+  // ============================================
   const getTodoCountForDate = (date) => {
     return todos.filter((todo) => dayjs(todo.date).isSame(date, "day")).length;
   };
 
+  // ============================================
+  // 네비게이션 핸들러
+  // ============================================
   const handlePrev = () => {
     if (viewMode === "week") {
       setCurrentWeek(currentWeek.subtract(1, "week"));
@@ -120,10 +83,9 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
     setViewMode(viewMode === "week" ? "month" : "week");
   };
 
-  const weekDays = getWeekDays();
-  const monthDays = getMonthDays();
-
-  // 로딩 중일 때 placeholder 표시
+  // ============================================
+  // 로딩 상태
+  // ============================================
   if (!currentWeek || !currentMonth || !today) {
     return (
       <div className="hufflepuff-card p-4 mb-6">
@@ -134,11 +96,17 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
     );
   }
 
+  const weekDays = getWeekDays();
   const displayDate = viewMode === "week" ? currentWeek : currentMonth;
 
+  // ============================================
+  // 렌더링
+  // ============================================
   return (
     <div className="hufflepuff-card p-3 sm:p-4 mb-4 sm:mb-6">
+      {/* 헤더: 네비게이션 & 뷰 전환 */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
+        {/* 이전 버튼 */}
         <button
           onClick={handlePrev}
           className="p-1.5 sm:p-2 rounded-full hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors"
@@ -147,6 +115,7 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
           <ChevronLeft className="text-hufflepuff-gold dark:text-hufflepuff-yellow w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
+        {/* 타이틀 (클릭하면 뷰 전환) */}
         <button 
           onClick={toggleViewMode}
           className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors"
@@ -157,6 +126,7 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
           </h2>
         </button>
 
+        {/* 다음 버튼 */}
         <button 
           onClick={handleNext} 
           className="p-1.5 sm:p-2 rounded-full hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors" 
@@ -173,6 +143,7 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
         </span>
       </div>
 
+      {/* 캘린더 뷰 */}
       {viewMode === "week" ? (
         // 주간 뷰
         <div className="grid grid-cols-7 gap-2">
@@ -189,76 +160,13 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
         </div>
       ) : (
         // 월간 뷰
-        <div>
-          {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
-            {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-              <div 
-                key={`${day}-${idx}`} 
-                className={`text-center text-[10px] sm:text-xs font-semibold py-0.5 sm:py-1 ${
-                  idx === 0 ? "text-red-500" : idx === 6 ? "text-blue-500" : "text-hufflepuff-gray dark:text-badger-cream"
-                }`}
-              >
-                <span className="hidden sm:inline">{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][idx]}</span>
-                <span className="sm:hidden">{day}</span>
-              </div>
-            ))}
-          </div>
-          
-          {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
-            {monthDays.map((day) => {
-              const isCurrentMonth = day.month() === currentMonth.month();
-              const isToday = today.isSame(day, "day");
-              const isSelected = selectedDate && dayjs(selectedDate).isSame(day, "day");
-              const todoCount = getTodoCountForDate(day);
-              const dayOfWeek = day.day();
-              const isSunday = dayOfWeek === 0;
-              const isSaturday = dayOfWeek === 6;
-              const isHolidayDate = isHoliday(day);
-              const holidayName = getHolidayName(day);
-
-              return (
-                <button
-                  key={day.format("YYYY-MM-DD")}
-                  onClick={() => onDateSelect(day.format("YYYY-MM-DD"))}
-                  className={`
-                    relative p-0.5 sm:p-1 rounded-md sm:rounded-lg text-center transition-all min-h-[40px] sm:min-h-[60px] flex flex-col items-center justify-start
-                    ${isSelected 
-                      ? "bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black scale-105" 
-                      : isCurrentMonth 
-                        ? "bg-white dark:bg-hufflepuff-gray hover:bg-hufflepuff-light dark:hover:bg-badger-brown" 
-                        : "bg-gray-100 dark:bg-gray-700 opacity-40"
-                    }
-                    ${isToday && !isSelected ? "ring-1 sm:ring-2 ring-hufflepuff-gold dark:ring-hufflepuff-yellow" : ""}
-                  `}
-                >
-                  <span className={`text-xs sm:text-sm font-bold ${
-                    isSelected 
-                      ? "text-hufflepuff-black" 
-                      : (isSunday || isHolidayDate)
-                        ? "text-red-500 dark:text-red-400" 
-                        : isSaturday 
-                          ? "text-blue-500 dark:text-blue-400" 
-                          : "text-hufflepuff-black dark:text-hufflepuff-light"
-                  }`}>
-                    {day.format("D")}
-                  </span>
-                  {holidayName && (
-                    <span className={`text-[6px] sm:text-[9px] leading-tight truncate max-w-full ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
-                      {holidayName}
-                    </span>
-                  )}
-                  {todoCount > 0 && (
-                    <span className="absolute bottom-0 right-0 sm:bottom-0.5 sm:right-0.5 text-[8px] sm:text-[10px] bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black rounded-full w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center">
-                      {todoCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <MonthlyCalendar
+          currentMonth={currentMonth}
+          today={today}
+          selectedDate={selectedDate}
+          onDateSelect={onDateSelect}
+          getTodoCountForDate={getTodoCountForDate}
+        />
       )}
     </div>
   );
