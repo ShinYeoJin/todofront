@@ -9,5 +9,24 @@ const instance = axios.create({
   },
 });
 
+// 응답 정규화: { data: [...] } 또는 [...] 형식 모두 처리
+instance.interceptors.response.use(
+  (response) => {
+    // 배열이 직접 반환된 경우 { data: [...] } 형식으로 변환
+    if (Array.isArray(response.data)) {
+      response.data = { data: response.data };
+    }
+    // 단일 객체가 반환되고 data 속성이 없는 경우
+    else if (response.data && typeof response.data === "object" && !response.data.data && response.data.id) {
+      response.data = { data: response.data };
+    }
+    return response;
+  },
+  (error) => {
+    console.error("API Error:", error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
 export default instance;
 
