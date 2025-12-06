@@ -245,7 +245,7 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
                     {day.format("D")}
                   </span>
                   {holidayName && (
-                    <span className={`text-[7px] sm:text-[9px] leading-tight hidden sm:block ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
+                    <span className={`text-[6px] sm:text-[9px] leading-tight truncate max-w-full ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
                       {holidayName}
                     </span>
                   )}
