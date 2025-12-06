@@ -41,7 +41,7 @@ export default function Header() {
   // 클라이언트에서만 시간 초기화 (SSR 시점과의 차이로 인한 Hydration 오류 방지)
   const [currentTime, setCurrentTime] = useState(null);
   const [quoteIndex, setQuoteIndex] = useState(0);
-  const [fadeIn, setFadeIn] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     // 초기 마운트 및 1초 간격 시간 갱신을 위해 effect 내부에서만 state를 업데이트
@@ -55,16 +55,16 @@ export default function Header() {
     return () => clearInterval(interval);
   }, []);
 
-  // 2초마다 명언 변경
+  // 5초마다 명언 변경 (읽기 편한 시간)
   useEffect(() => {
     const quoteInterval = setInterval(() => {
-      setFadeIn(false); // 페이드 아웃
+      setIsAnimating(true); // 애니메이션 시작 (위로 슬라이드 아웃)
       
       setTimeout(() => {
         setQuoteIndex((prev) => (prev + 1) % QUOTES.length);
-        setFadeIn(true); // 페이드 인
-      }, 300); // 0.3초 후 텍스트 변경
-    }, 2000);
+        setIsAnimating(false); // 애니메이션 종료 (아래에서 슬라이드 인)
+      }, 500); // 0.5초 후 텍스트 변경
+    }, 5000);
 
     return () => clearInterval(quoteInterval);
   }, []);
@@ -76,13 +76,17 @@ export default function Header() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-['Cinzel_Decorative'] font-bold text-yellow-500 dark:text-yellow-400 mb-2">💫 Todo List 💫</h1>
-          <p 
-            className={`text-sm text-hufflepuff-gray dark:text-badger-cream italic transition-opacity duration-300 ${
-              fadeIn ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            &quot;{currentQuote.text}&quot; - {currentQuote.author}
-          </p>
+          <div className="h-6 overflow-hidden">
+            <p 
+              className={`text-sm text-hufflepuff-gray dark:text-badger-cream italic transition-all duration-500 ease-in-out ${
+                isAnimating 
+                  ? "opacity-0 -translate-y-full" 
+                  : "opacity-100 translate-y-0"
+              }`}
+            >
+              &quot;{currentQuote.text}&quot; - {currentQuote.author}
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col items-end gap-3">
