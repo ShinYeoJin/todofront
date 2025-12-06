@@ -35,53 +35,53 @@ export default function TodoItem({ todo, onToggle, onDelete, onAddSubtask, onTog
   const completedSubtaskCount = todo.subtasks?.filter((s) => s.completed).length || 0;
 
   return (
-    <div ref={setNodeRef} style={style} className="hufflepuff-card p-4 mb-3">
-      <div className="flex items-start gap-3">
+    <div ref={setNodeRef} style={style} className="hufflepuff-card p-3 sm:p-4 mb-2 sm:mb-3">
+      <div className="flex items-start gap-2 sm:gap-3">
         {/* Drag Handle */}
-        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mt-1 text-hufflepuff-gray dark:text-badger-cream">
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mt-1 text-hufflepuff-gray dark:text-badger-cream hidden sm:block">
           ⋮⋮
         </div>
 
         {/* Checkbox */}
         <button
           onClick={() => onToggle(todo.id)}
-          className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+          className={`flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-colors ${
             todo.completed ? "bg-hufflepuff-gold dark:bg-hufflepuff-yellow border-hufflepuff-gold" : "border-hufflepuff-gray dark:border-badger-cream hover:border-hufflepuff-gold"
           }`}
         >
-          {todo.completed && <Check size={16} className="text-hufflepuff-black" />}
+          {todo.completed && <Check size={14} className="sm:w-4 sm:h-4 text-hufflepuff-black" />}
         </button>
 
         {/* Content */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className={`text-lg ${todo.completed ? "line-through text-hufflepuff-gray dark:text-badger-cream" : "text-hufflepuff-black dark:text-hufflepuff-light"}`}>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={`text-sm sm:text-lg truncate ${todo.completed ? "line-through text-hufflepuff-gray dark:text-badger-cream" : "text-hufflepuff-black dark:text-hufflepuff-light"}`}>
                 {todo.title}
               </span>
               {hasSubtasks && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-hufflepuff-light dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream">
+                <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-hufflepuff-light dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream flex-shrink-0">
                   {completedSubtaskCount}/{subtaskCount}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-hufflepuff-gray dark:text-badger-cream">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <span className="text-xs sm:text-sm text-hufflepuff-gray dark:text-badger-cream">
                 {todo.date ? new Date(todo.date).toLocaleDateString() : ""}
               </span>
 
               {/* Expand/Collapse 버튼 - 항상 표시 */}
               <button 
                 onClick={() => setIsExpanded(!isExpanded)} 
-                className="text-hufflepuff-gold dark:text-hufflepuff-yellow hover:opacity-70"
+                className="text-hufflepuff-gold dark:text-hufflepuff-yellow hover:opacity-70 p-1"
                 title={isExpanded ? "Collapse subtasks" : "Expand subtasks"}
               >
-                {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                {isExpanded ? <ChevronDown size={18} className="sm:w-5 sm:h-5" /> : <ChevronRight size={18} className="sm:w-5 sm:h-5" />}
               </button>
 
-              <button onClick={() => onDelete(todo.id)} className="text-red-500 hover:text-red-700 transition-colors">
-                <Trash2 size={18} />
+              <button onClick={() => onDelete(todo.id)} className="text-red-500 hover:text-red-700 transition-colors p-1">
+                <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
             </div>
           </div>

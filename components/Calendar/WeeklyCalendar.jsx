@@ -137,39 +137,39 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
   const displayDate = viewMode === "week" ? currentWeek : currentMonth;
 
   return (
-    <div className="hufflepuff-card p-4 mb-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="hufflepuff-card p-3 sm:p-4 mb-4 sm:mb-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <button
           onClick={handlePrev}
-          className="p-2 rounded-full hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors"
+          className="p-1.5 sm:p-2 rounded-full hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors"
           aria-label={viewMode === "week" ? "Previous week" : "Previous month"}
         >
-          <ChevronLeft className="text-hufflepuff-gold dark:text-hufflepuff-yellow" size={24} />
+          <ChevronLeft className="text-hufflepuff-gold dark:text-hufflepuff-yellow w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
         <button 
           onClick={toggleViewMode}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors"
+          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors"
         >
-          <Calendar className="text-hufflepuff-gold dark:text-hufflepuff-yellow" size={20} />
-          <h2 className="font-potter text-xl text-hufflepuff-gold dark:text-hufflepuff-yellow">
-            {displayDate.format("MMMM YYYY")}
+          <Calendar className="text-hufflepuff-gold dark:text-hufflepuff-yellow w-4 h-4 sm:w-5 sm:h-5" />
+          <h2 className="font-potter text-base sm:text-xl text-hufflepuff-gold dark:text-hufflepuff-yellow">
+            {displayDate.format("MMM YYYY")}
           </h2>
         </button>
 
         <button 
           onClick={handleNext} 
-          className="p-2 rounded-full hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors" 
+          className="p-1.5 sm:p-2 rounded-full hover:bg-hufflepuff-light dark:hover:bg-badger-brown transition-colors" 
           aria-label={viewMode === "week" ? "Next week" : "Next month"}
         >
-          <ChevronRight className="text-hufflepuff-gold dark:text-hufflepuff-yellow" size={24} />
+          <ChevronRight className="text-hufflepuff-gold dark:text-hufflepuff-yellow w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       </div>
 
       {/* 뷰 모드 표시 */}
-      <div className="flex justify-center mb-3">
-        <span className="text-xs text-hufflepuff-gray dark:text-badger-cream px-3 py-1 bg-hufflepuff-light dark:bg-badger-brown rounded-full">
-          {viewMode === "week" ? "📅 Weekly View" : "📆 Monthly View"} (click title to switch)
+      <div className="flex justify-center mb-2 sm:mb-3">
+        <span className="text-[10px] sm:text-xs text-hufflepuff-gray dark:text-badger-cream px-2 sm:px-3 py-1 bg-hufflepuff-light dark:bg-badger-brown rounded-full">
+          {viewMode === "week" ? "📅 Weekly" : "📆 Monthly"} (tap to switch)
         </span>
       </div>
 
@@ -191,21 +191,22 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
         // 월간 뷰
         <div>
           {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, idx) => (
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
+            {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
               <div 
-                key={day} 
-                className={`text-center text-xs font-semibold py-1 ${
+                key={`${day}-${idx}`} 
+                className={`text-center text-[10px] sm:text-xs font-semibold py-0.5 sm:py-1 ${
                   idx === 0 ? "text-red-500" : idx === 6 ? "text-blue-500" : "text-hufflepuff-gray dark:text-badger-cream"
                 }`}
               >
-                {day}
+                <span className="hidden sm:inline">{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][idx]}</span>
+                <span className="sm:hidden">{day}</span>
               </div>
             ))}
           </div>
           
           {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {monthDays.map((day) => {
               const isCurrentMonth = day.month() === currentMonth.month();
               const isToday = today.isSame(day, "day");
@@ -222,17 +223,17 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
                   key={day.format("YYYY-MM-DD")}
                   onClick={() => onDateSelect(day.format("YYYY-MM-DD"))}
                   className={`
-                    relative p-1 rounded-lg text-center transition-all min-h-[60px] flex flex-col items-center justify-start
+                    relative p-0.5 sm:p-1 rounded-md sm:rounded-lg text-center transition-all min-h-[40px] sm:min-h-[60px] flex flex-col items-center justify-start
                     ${isSelected 
                       ? "bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black scale-105" 
                       : isCurrentMonth 
                         ? "bg-white dark:bg-hufflepuff-gray hover:bg-hufflepuff-light dark:hover:bg-badger-brown" 
                         : "bg-gray-100 dark:bg-gray-700 opacity-40"
                     }
-                    ${isToday && !isSelected ? "ring-2 ring-hufflepuff-gold dark:ring-hufflepuff-yellow" : ""}
+                    ${isToday && !isSelected ? "ring-1 sm:ring-2 ring-hufflepuff-gold dark:ring-hufflepuff-yellow" : ""}
                   `}
                 >
-                  <span className={`text-sm font-bold ${
+                  <span className={`text-xs sm:text-sm font-bold ${
                     isSelected 
                       ? "text-hufflepuff-black" 
                       : (isSunday || isHolidayDate)
@@ -244,12 +245,12 @@ export default function WeeklyCalendar({ todos, onDateSelect, selectedDate }) {
                     {day.format("D")}
                   </span>
                   {holidayName && (
-                    <span className={`text-[9px] leading-tight ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
+                    <span className={`text-[7px] sm:text-[9px] leading-tight hidden sm:block ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
                       {holidayName}
                     </span>
                   )}
                   {todoCount > 0 && (
-                    <span className="absolute bottom-0.5 right-0.5 text-[10px] bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black rounded-full w-4 h-4 flex items-center justify-center">
+                    <span className="absolute bottom-0 right-0 sm:bottom-0.5 sm:right-0.5 text-[8px] sm:text-[10px] bg-hufflepuff-gold dark:bg-hufflepuff-yellow text-hufflepuff-black rounded-full w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center">
                       {todoCount}
                     </span>
                   )}

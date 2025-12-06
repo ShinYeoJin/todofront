@@ -70,31 +70,31 @@ export default function CalendarDay({ date, today, todoCount, isSelected, onClic
     <button
       onClick={onClick}
       className={`
-        flex flex-col items-center p-2 rounded-lg border-2 transition-all min-h-[90px]
+        flex flex-col items-center p-1 sm:p-2 rounded-lg border-2 transition-all min-h-[70px] sm:min-h-[90px]
         ${
           isSelected
             ? "bg-hufflepuff-gold dark:bg-hufflepuff-yellow border-hufflepuff-black scale-105"
             : "bg-white dark:bg-hufflepuff-gray border-hufflepuff-gold dark:border-hufflepuff-yellow hover:scale-105"
         }
-        ${isToday ? "ring-2 ring-hufflepuff-gold dark:ring-hufflepuff-yellow ring-offset-2" : ""}
+        ${isToday ? "ring-2 ring-hufflepuff-gold dark:ring-hufflepuff-yellow ring-offset-1 sm:ring-offset-2" : ""}
       `}
     >
       {/* 요일 텍스트 - 원래 색상 유지 */}
-      <span className={`text-xs font-semibold ${isSelected ? "text-hufflepuff-black" : "text-hufflepuff-gray dark:text-badger-cream"}`}>
+      <span className={`text-[10px] sm:text-xs font-semibold ${isSelected ? "text-hufflepuff-black" : "text-hufflepuff-gray dark:text-badger-cream"}`}>
         {dayjs(date).format("ddd")}
       </span>
       {/* 날짜 숫자 - 토요일 파란색, 일요일/공휴일 빨간색 */}
-      <span className={`text-lg font-bold ${getDateColor()}`}>
+      <span className={`text-sm sm:text-lg font-bold ${getDateColor()}`}>
         {dayjs(date).format("DD")}
       </span>
       {/* 공휴일 이름 */}
       {holidayName && (
-        <span className={`text-[10px] leading-tight ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
+        <span className={`text-[8px] sm:text-[10px] leading-tight ${isSelected ? "text-hufflepuff-black" : "text-red-500 dark:text-red-400"}`}>
           {holidayName}
         </span>
       )}
-      {isToday && <span className="text-[10px] text-hufflepuff-gold dark:text-hufflepuff-yellow font-semibold">Today</span>}
-      <span className="badger-badge mt-1">{todoCount}</span>
+      {isToday && <span className="text-[8px] sm:text-[10px] text-hufflepuff-gold dark:text-hufflepuff-yellow font-semibold">Today</span>}
+      <span className="badger-badge mt-0.5 sm:mt-1 text-[10px] sm:text-xs">{todoCount}</span>
     </button>
   );
 }

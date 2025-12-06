@@ -73,12 +73,12 @@ export default function Header() {
 
   return (
     <header className="hufflepuff-header">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-['Cinzel_Decorative'] font-bold text-yellow-500 dark:text-yellow-400 mb-2">💫 Todo List 💫</h1>
-          <div className="h-6 overflow-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+        <div className="text-center sm:text-left w-full sm:w-auto">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-['Cinzel_Decorative'] font-bold text-yellow-500 dark:text-yellow-400 mb-2">💫 Todo List 💫</h1>
+          <div className="h-5 sm:h-6 overflow-hidden">
             <p 
-              className={`text-sm text-hufflepuff-gray dark:text-badger-cream italic transition-all duration-500 ease-in-out ${
+              className={`text-xs sm:text-sm text-hufflepuff-gray dark:text-badger-cream italic transition-all duration-500 ease-in-out ${
                 isAnimating 
                   ? "opacity-0 -translate-y-full" 
                   : "opacity-100 translate-y-0"
@@ -89,8 +89,8 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-3">
-          <div className="font-mono text-2xl font-bold text-hufflepuff-black dark:text-hufflepuff-yellow">
+        <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3">
+          <div className="font-mono text-xl sm:text-2xl font-bold text-hufflepuff-black dark:text-hufflepuff-yellow">
             {currentTime ? currentTime.format("HH:mm:ss") : null}
           </div>
           <DarkModeToggle />

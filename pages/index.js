@@ -285,7 +285,7 @@ export default function Home() {
   }, [todos, selectedDate]);
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <Header />
 
@@ -318,10 +318,10 @@ export default function Home() {
         )}
 
         {/* 필터 버튼 */}
-        <div className="hufflepuff-card p-4 mb-6 flex gap-3 justify-center">
+        <div className="hufflepuff-card p-3 sm:p-4 mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-3 justify-center">
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors ${
               filter === "all" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
             }`}
           >
@@ -329,7 +329,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setFilter("active")}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors ${
               filter === "active" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
             }`}
           >
@@ -337,7 +337,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setFilter("completed")}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors ${
               filter === "completed" ? "bg-hufflepuff-gold text-hufflepuff-black" : "bg-white dark:bg-hufflepuff-gray text-hufflepuff-gray dark:text-badger-cream hover:bg-hufflepuff-light"
             }`}
           >

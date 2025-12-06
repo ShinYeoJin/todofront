@@ -36,27 +36,29 @@ export default function TodoForm({ onAddTodo, selectedDate }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="hufflepuff-card p-4 mb-6">
-      <div className="flex gap-3">
+    <form onSubmit={handleSubmit} className="hufflepuff-card p-3 sm:p-4 mb-4 sm:mb-6">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="What needs to be done, fellow Hufflepuff?"
-          className="flex-1 px-4 py-3 rounded-lg border-2 border-hufflepuff-gold dark:border-hufflepuff-yellow bg-white dark:bg-hufflepuff-gray text-hufflepuff-black dark:text-hufflepuff-light focus:outline-none focus:ring-2 focus:ring-hufflepuff-yellow"
+          placeholder="What needs to be done?"
+          className="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-hufflepuff-gold dark:border-hufflepuff-yellow bg-white dark:bg-hufflepuff-gray text-hufflepuff-black dark:text-hufflepuff-light focus:outline-none focus:ring-2 focus:ring-hufflepuff-yellow text-sm sm:text-base"
         />
 
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="px-4 py-3 rounded-lg border-2 border-hufflepuff-gold dark:border-hufflepuff-yellow bg-white dark:bg-hufflepuff-gray text-hufflepuff-black dark:text-hufflepuff-light focus:outline-none focus:ring-2 focus:ring-hufflepuff-yellow"
-        />
+        <div className="flex gap-2 sm:gap-3">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-hufflepuff-gold dark:border-hufflepuff-yellow bg-white dark:bg-hufflepuff-gray text-hufflepuff-black dark:text-hufflepuff-light focus:outline-none focus:ring-2 focus:ring-hufflepuff-yellow text-sm sm:text-base"
+          />
 
-        <button type="submit" className="hufflepuff-btn flex items-center gap-2">
-          <Plus size={20} />
-          <span>Add Task</span>
-        </button>
+          <button type="submit" className="hufflepuff-btn flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base whitespace-nowrap">
+            <Plus size={18} className="sm:w-5 sm:h-5" />
+            <span className="hidden xs:inline sm:inline">Add</span>
+          </button>
+        </div>
       </div>
     </form>
   );
