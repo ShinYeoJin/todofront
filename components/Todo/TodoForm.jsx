@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import dayjs from "dayjs";
-import axios from "../../utils/api";
+import axios, { extractData } from "../../utils/api";
 
 export default function TodoForm({ onAddTodo, selectedDate }) {
   const [title, setTitle] = useState("");
@@ -24,7 +24,10 @@ export default function TodoForm({ onAddTodo, selectedDate }) {
 
     try {
       const response = await axios.post("/todos", { title: title.trim(), date });
-      onAddTodo(response.data.data);
+      const newTodo = extractData(response);
+      if (newTodo) {
+        onAddTodo(newTodo);
+      }
       setTitle("");
     } catch (error) {
       console.error("Failed to add todo:", error);

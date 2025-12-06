@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import Header from "@/components/Layout/Header";
 import WeeklyCalendar from "@/components/Calendar/WeeklyCalendar";
 import TodoList from "@/components/Todo/TodoList";
-import axios from "@/utils/api";
+import axios, { extractData } from "@/utils/api";
 
 export default function Home() {
   const [todos, setTodos] = useState([]);
@@ -15,8 +15,9 @@ export default function Home() {
     const fetchTodos = async () => {
       try {
         const response = await axios.get("/todos");
-        if (response.status === 200 && response.data && response.data.data) {
-          setTodos(response.data.data);
+        const data = extractData(response);
+        if (Array.isArray(data)) {
+          setTodos(data);
         }
       } catch (error) {
         console.error("Failed to fetch todos:", error);
@@ -40,7 +41,7 @@ export default function Home() {
 
       try {
         const response = await axios.patch(`/todos/${id}/toggle`);
-        const updated = response.data?.data;
+        const updated = extractData(response);
 
         if (updated) {
           setTodos((prev) => prev.map((todo) => (todo.id === id ? updated : todo)));
@@ -102,7 +103,7 @@ export default function Home() {
 
       try {
         const response = await axios.post("/subtasks", { todoId, title: subtaskTitle });
-        const newSubtask = response.data?.data;
+        const newSubtask = extractData(response);
 
         if (!newSubtask) return;
 
@@ -149,7 +150,7 @@ export default function Home() {
 
       try {
         const response = await axios.patch(`/subtasks/${subtaskId}/toggle`);
-        const updatedSubtask = response.data?.data;
+        const updatedSubtask = extractData(response);
 
         if (!updatedSubtask) return;
 
