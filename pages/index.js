@@ -304,6 +304,16 @@ export default function Home() {
                 style={{ width: `${totalProgress}%` }}
               />
             </div>
+            {totalProgress === 100 && (
+              <div className="mt-3 p-3 bg-gradient-to-r from-hufflepuff-gold/20 to-hufflepuff-yellow/20 rounded-lg border-2 border-hufflepuff-gold dark:border-hufflepuff-yellow">
+                <p className="text-center font-bold text-hufflepuff-black dark:text-hufflepuff-yellow">
+                  🎉 축하합니다! 모든 할 일을 완료했어요! 🎉
+                </p>
+                <p className="text-center text-sm text-hufflepuff-gray dark:text-badger-cream mt-1">
+                  정말 고생 많았어요! 오늘도 최선을 다한 당신이 자랑스럽습니다! ⭐
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -353,6 +363,13 @@ export default function Home() {
                 style={{ width: `${selectedDateProgress}%` }}
               />
             </div>
+            {selectedDateProgress === 100 && (
+              <div className="mt-3 p-2 bg-gradient-to-r from-hufflepuff-gold/20 to-hufflepuff-yellow/20 rounded-lg border border-hufflepuff-gold dark:border-hufflepuff-yellow">
+                <p className="text-center font-semibold text-hufflepuff-black dark:text-hufflepuff-yellow text-sm">
+                  🎉 오늘 할 일을 모두 완료했어요! 고생 많았어요! 🎉
+                </p>
+              </div>
+            )}
           </div>
         )}
 
