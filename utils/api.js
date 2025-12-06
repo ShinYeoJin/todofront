@@ -1,14 +1,14 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://todolist-back-fohi.onrender.com/api",
+  // Next.js API 프록시를 통해 백엔드에 접근 (CORS 문제 해결)
+  baseURL: "/api/proxy",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // 응답에서 데이터를 추출하는 헬퍼 함수
-// { data: [...] } 형식이든 직접 [...] 형식이든 모두 처리
 export const extractData = (response) => {
   const responseData = response.data;
   
