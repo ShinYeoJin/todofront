@@ -4,7 +4,7 @@ import TodoItem from "./TodoItem";
 import TodoForm from "./TodoForm";
 import axios from "../../utils/api";
 
-export default function TodoList({ todos, selectedDate, onReorder, onToggle, onDelete, onAddTodo, onAddSubtask, onToggleSubtask, onDeleteSubtask }) {
+export default function TodoList({ todos, selectedDate, filter, onReorder, onToggle, onDelete, onAddTodo, onAddSubtask, onToggleSubtask, onDeleteSubtask }) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -51,6 +51,7 @@ export default function TodoList({ todos, selectedDate, onReorder, onToggle, onD
                 <TodoItem
                   key={todo.id}
                   todo={todo}
+                  filter={filter}
                   onToggle={(id) => onToggle(id)}
                   onDelete={(id) => onDelete(id)}
                   onAddSubtask={(id, title) => onAddSubtask(id, title)}

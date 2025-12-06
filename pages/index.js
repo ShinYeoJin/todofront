@@ -230,12 +230,23 @@ export default function Home() {
     return filtered;
   }, [todos, selectedDate, filter]);
 
-  // 필터 버튼에 표시할 카운트 (선택된 날짜가 있으면 해당 날짜 기준, 없으면 전체 기준)
+  // 필터 버튼에 표시할 카운트 (todo + subtask 모두 포함)
   const { allCount, activeCount, completedCount } = useMemo(() => {
     const todosForCount = selectedDate ? todos.filter((todo) => dayjs(todo.date).isSame(selectedDate, "day")) : todos;
-    const all = todosForCount.length;
-    const active = todosForCount.filter((t) => !t.completed).length;
-    const completed = todosForCount.filter((t) => t.completed).length;
+    
+    // Todo 카운트
+    let all = todosForCount.length;
+    let active = todosForCount.filter((t) => !t.completed).length;
+    let completed = todosForCount.filter((t) => t.completed).length;
+    
+    // Subtask 카운트 추가
+    todosForCount.forEach((todo) => {
+      if (todo.subtasks && todo.subtasks.length > 0) {
+        all += todo.subtasks.length;
+        active += todo.subtasks.filter((s) => !s.completed).length;
+        completed += todo.subtasks.filter((s) => s.completed).length;
+      }
+    });
 
     return { allCount: all, activeCount: active, completedCount: completed };
   }, [todos, selectedDate]);
@@ -287,6 +298,7 @@ export default function Home() {
         <TodoList
           todos={filteredTodos}
           selectedDate={selectedDate}
+          filter={filter}
           onReorder={handleReorderTodos}
           onToggle={handleToggleTodo}
           onDelete={handleDeleteTodo}
