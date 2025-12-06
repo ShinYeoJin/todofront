@@ -251,12 +251,61 @@ export default function Home() {
     return { allCount: all, activeCount: active, completedCount: completed };
   }, [todos, selectedDate]);
 
+  // 전체 진행률 계산 (캘린더 하단에 표시)
+  const totalProgress = useMemo(() => {
+    let total = todos.length;
+    let completed = todos.filter((t) => t.completed).length;
+    
+    todos.forEach((todo) => {
+      if (todo.subtasks && todo.subtasks.length > 0) {
+        total += todo.subtasks.length;
+        completed += todo.subtasks.filter((s) => s.completed).length;
+      }
+    });
+
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  }, [todos]);
+
+  // 선택된 날짜의 진행률 계산
+  const selectedDateProgress = useMemo(() => {
+    if (!selectedDate) return 0;
+    
+    const dateTodos = todos.filter((todo) => dayjs(todo.date).isSame(selectedDate, "day"));
+    let total = dateTodos.length;
+    let completed = dateTodos.filter((t) => t.completed).length;
+    
+    dateTodos.forEach((todo) => {
+      if (todo.subtasks && todo.subtasks.length > 0) {
+        total += todo.subtasks.length;
+        completed += todo.subtasks.filter((s) => s.completed).length;
+      }
+    });
+
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  }, [todos, selectedDate]);
+
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-5xl mx-auto">
         <Header />
 
         <WeeklyCalendar todos={todos} onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+
+        {/* 전체 진행률 */}
+        {!selectedDate && todos.length > 0 && (
+          <div className="hufflepuff-card p-4 mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-hufflepuff-black dark:text-hufflepuff-light">📊 Overall Progress</span>
+              <span className="text-lg font-bold text-hufflepuff-gold dark:text-hufflepuff-yellow">{totalProgress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-hufflepuff-gray rounded-full h-4 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-hufflepuff-gold to-hufflepuff-yellow transition-all duration-500 ease-out"
+                style={{ width: `${totalProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* 필터 버튼 */}
         <div className="hufflepuff-card p-4 mb-6 flex gap-3 justify-center">
@@ -287,11 +336,23 @@ export default function Home() {
         </div>
 
         {selectedDate && (
-          <div className="mb-4 flex items-center justify-between hufflepuff-card p-3">
-            <span className="font-semibold text-hufflepuff-gold dark:text-hufflepuff-yellow">📅 Showing tasks for {dayjs(selectedDate).format("MMMM DD, YYYY")}</span>
-            <button onClick={() => setSelectedDate(null)} className="text-sm text-hufflepuff-gray dark:text-badger-cream hover:text-hufflepuff-black dark:hover:text-hufflepuff-light">
-              Clear filter
-            </button>
+          <div className="mb-4 hufflepuff-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-semibold text-hufflepuff-gold dark:text-hufflepuff-yellow">📅 Showing tasks for {dayjs(selectedDate).format("MMMM DD, YYYY")}</span>
+              <button onClick={() => setSelectedDate(null)} className="text-sm text-hufflepuff-gray dark:text-badger-cream hover:text-hufflepuff-black dark:hover:text-hufflepuff-light">
+                Clear filter
+              </button>
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-hufflepuff-black dark:text-hufflepuff-light">📊 Daily Progress</span>
+              <span className="text-lg font-bold text-hufflepuff-gold dark:text-hufflepuff-yellow">{selectedDateProgress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-hufflepuff-gray rounded-full h-3 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-hufflepuff-gold to-hufflepuff-yellow transition-all duration-500 ease-out"
+                style={{ width: `${selectedDateProgress}%` }}
+              />
+            </div>
           </div>
         )}
 
