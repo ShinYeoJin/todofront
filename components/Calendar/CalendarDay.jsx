@@ -52,20 +52,12 @@ export default function CalendarDay({ date, today, todoCount, isSelected, onClic
   const isSaturday = dayOfWeek === 6;
   const isHolidayDate = isHoliday(date);
 
-  // 날짜 숫자 색상 결정
+  // 날짜 숫자 색상 결정 (토요일: 파란색, 일요일/공휴일: 빨간색)
   const getDateColor = () => {
     if (isSelected) return "text-hufflepuff-black";
     if (isSunday || isHolidayDate) return "text-red-500 dark:text-red-400";
     if (isSaturday) return "text-blue-500 dark:text-blue-400";
     return "text-hufflepuff-black dark:text-hufflepuff-yellow";
-  };
-
-  // 요일 텍스트 색상 결정
-  const getDayColor = () => {
-    if (isSelected) return "text-hufflepuff-black";
-    if (isSunday || isHolidayDate) return "text-red-500 dark:text-red-400";
-    if (isSaturday) return "text-blue-500 dark:text-blue-400";
-    return "text-hufflepuff-gray dark:text-badger-cream";
   };
 
   return (
@@ -81,9 +73,11 @@ export default function CalendarDay({ date, today, todoCount, isSelected, onClic
         ${isToday ? "ring-2 ring-hufflepuff-gold dark:ring-hufflepuff-yellow ring-offset-2" : ""}
       `}
     >
-      <span className={`text-xs font-semibold ${getDayColor()}`}>
+      {/* 요일 텍스트 - 원래 색상 유지 */}
+      <span className={`text-xs font-semibold ${isSelected ? "text-hufflepuff-black" : "text-hufflepuff-gray dark:text-badger-cream"}`}>
         {dayjs(date).format("ddd")}
       </span>
+      {/* 날짜 숫자 - 토요일 파란색, 일요일/공휴일 빨간색 */}
       <span className={`text-lg font-bold ${getDateColor()}`}>
         {dayjs(date).format("DD")}
       </span>
